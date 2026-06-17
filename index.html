@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Mood Swings</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            
+            --bg: #000000;
+            --surface: #1c1c1e;
+            --primary: #ffffff;
+            --secondary: #8e8e93;
+            --accent: #0a84ff;
+            --danger: #ff453a;
+            --success: #30d158;
+            --border: #38383a;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 0 16px;
+        }
+
+        .header {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-btn {
+            position: absolute;
+            right: 0;
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            font-size: 17px;
+            font-weight: 400;
+            cursor: pointer;
+            padding: 8px 0 8px 16px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding-left: 4px;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            border-radius: 12px;
+            font-size: 17px;
+            appearance: none;
+            user-select: auto;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        option {
+            background-color: var(--surface);
+            color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.1s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #ffffff;
+            margin-top: 8px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent);
+            margin-top: 16px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            opacity: 0.8;
+        }
+
+        .player-row {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .player-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .player-row:first-child {
+            padding-top: 0;
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .player-name {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .player-wins {
+            color: var(--success);
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-first { background: rgba(10, 132, 255, 0.2); color: var(--accent); }
+        .badge-hurt { background: rgba(255, 69, 58, 0.2); color: var(--danger); }
+
+        .score-control {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            height: 60px;
+            overflow: hidden;
+        }
+
+        .score-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 28px;
+            font-weight: 400;
+        }
+
+        .score-display {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .hidden { display: none !important; }
+
+        /* Dialog overlays */
+        #modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 24px;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: 20px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .modal-body {
+            color: var(--secondary);
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        #tiebreaker-controls button {
+            margin-bottom: 12px;
+        }
+
+        /* Rules Fullscreen Modal */
+        #rules-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #rules-overlay.active {
+            transform: translateY(0);
+        }
+
+        .rules-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(28, 28, 30, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rules-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .rules-close {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 17px;
+            font-weight: 600;
+            padding: 8px 0 8px 16px;
+            cursor: pointer;
+        }
+
+        .rules-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+            color: var(--primary);
+            user-select: text;
+        }
+
+        .rules-content h3 {
+            color: var(--accent);
+            margin-top: 24px;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .rules-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .rules-content p, .rules-content li {
+            color: var(--secondary);
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .rules-content ul {
+            padding-left: 20px;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .rules-content strong {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <div class="header" id="main-header">New Match</div>
+        <button class="header-btn" onclick="toggleRules()">Rules</button>
+    </div>
+
+    <div id="setup-view">
+        <div class="card">
+            <div class="input-group">
+                <label>Player 1</label>
+                <input type="text" id="p1-name" value="Player 1">
+            </div>
+            <div class="input-group">
+                <label>Player 2</label>
+                <input type="text" id="p2-name" value="Player 2">
+            </div>
+            <div class="input-group">
+                <label>Player 3 (Optional)</label>
+                <input type="text" id="p3-name" placeholder="Leave blank if 2 players">
+            </div>
+            <div class="input-group">
+                <label>Player 4 (Optional)</label>
+                <input type="text" id="p4-name" placeholder="Leave blank if < 4 players">
+            </div>
+        </div>
+        <div class="card">
+            <div class="input-group">
+                <label>Starting Player</label>
+                <select id="starter-select"></select>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="game-view" class="hidden">
+        <div class="card" id="players-container"></div>
+        <button class="btn btn-primary" onclick="calculateRound()">End Round</button>
+        <button class="btn btn-secondary" onclick="resetMatch()">End Match Early</button>
+    </div>
+
+    <!-- Tiebreaker & End Round Modal -->
+    <div id="modal-overlay" class="hidden">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title">Notice</div>
+            <div class="modal-body" id="modal-body"></div>
+            <div id="tiebreaker-controls" class="hidden"></div>
+            <button class="btn btn-primary" id="modal-btn" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+    <!-- How to Play Overlay -->
+    <div id="rules-overlay">
+        <div class="rules-header">
+            <h2>How to Play</h2>
+            <button class="rules-close" onclick="toggleRules()">Done</button>
+        </div>
+        <div class="rules-content">
+            <h3>The Basics</h3>
+            <p>The goal is to win three rounds. A round is won by having the highest total "score" on the table at the end of the round. The deck has 45 cards, each representing an emotion or mental state with a specific value (the die symbol).</p>
+            <ul>
+                <li><strong>White Dice:</strong> The card's value is fixed and will not change.</li>
+                <li><strong>Black Dice:</strong> The card's value can change based on the state of the game, so check its rules text.</li>
+                <li><strong>Secondary Value:</strong> Some cards have a second value in the lower-left corner; if a card changes to this value, rotate it 180 degrees.</li>
+            </ul>
+
+            <h3>Setting Up</h3>
+            <ul>
+                <li><strong>Shuffle and Deal:</strong> Shuffle the shared 45-card deck. Deal exactly five cards to each player.</li>
+                <li><strong>Determine First Player:</strong> Reveal the bottom card of the deck. The player who most recently felt that specific emotion goes first.</li>
+            </ul>
+
+            <h3>Taking a Turn</h3>
+            <p>During a round, players take turns in clockwise order. On your turn, you must <strong>play exactly one card</strong> from your hand face-up onto the table, or <strong>pass</strong>.</p>
+            <p>Cards in play are called <strong>moods</strong>. Resolve a played card in this exact order:</p>
+            <ul>
+                <li><strong>To play this card:</strong> A cost you must pay before placing the card down.</li>
+                <li><strong>While in play:</strong> A continuous effect applying as long as it is on the table.</li>
+                <li><strong>After playing this mood:</strong> An action taken immediately after playing the card.</li>
+            </ul>
+
+            <h3>Scoring the Round</h3>
+            <p>After every player has taken one turn, the round ends:</p>
+            <ul>
+                <li><strong>Calculate Scores:</strong> Each player adds up the current values of all their moods. Highest score wins. Tiebreaker: The tied player who took their turn earliest in the round wins.</li>
+                <li><strong>After-Scoring Effects:</strong> Resolve any cards that trigger specifically after scoring.</li>
+                <li><strong>Draw Cards:</strong> The winner does NOT draw. Every player who <em>lost</em> the round draws one card.</li>
+                <li><strong>Hurt Feelings:</strong> In a 3-4 player game, the player(s) with the absolute lowest score may play an extra card on their turn next round.</li>
+            </ul>
+            <p>The winner of the round takes the first turn in the next round. First to win 3 rounds wins the game.</p>
+        </div>
+    </div>
+
+<script>
+    let players = [];
+    let roundNum = 1;
+
+    const nameInputs = [1, 2, 3, 4].map(i => document.getElementById(`p${i}-name`));
+    const starterSelect = document.getElementById('starter-select');
+
+    function updateStarterOptions() {
+        const currentSelection = starterSelect.value;
+        starterSelect.innerHTML = '';
+        
+        nameInputs.forEach((input, index) => {
+            const name = input.value.trim();
+            if (name !== "") {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.text = name;
+                starterSelect.appendChild(opt);
+            }
+        });
+
+        if ([...starterSelect.options].some(o => o.value === currentSelection)) {
+            starterSelect.value = currentSelection;
+        }
+    }
+
+    nameInputs.forEach(input => input.addEventListener('input', updateStarterOptions));
+    updateStarterOptions();
+
+    function startGame() {
+        players = [];
+        const starterIdx = document.getElementById('starter-select').value;
+        let currentId = 0;
+
+        for (let i = 0; i < 4; i++) {
+            const name = nameInputs[i].value.trim();
+            if (name) {
+                players.push({
+                    id: currentId++,
+                    originalIdx: i.toString(),
+                    name: name,
+                    wins: 0,
+                    score: 0,
+                    isFirst: i.toString() === starterIdx,
+                    hasHurtFeelings: false
+                });
+            }
+        }
+
+        if (players.length < 2) {
+            alert("At least 2 players are required.");
+            return;
+        }
+
+        if (!players.some(p => p.isFirst)) players[0].isFirst = true;
+
+        roundNum = 1;
+        document.getElementById('setup-view').classList.add('hidden');
+        document.getElementById('game-view').classList.remove('hidden');
+        renderGame();
+    }
+
+    function renderGame() {
+        document.getElementById('main-header').innerText = `Round ${roundNum}`;
+        const container = document.getElementById('players-container');
+        container.innerHTML = '';
+
+        players.forEach((p, i) => {
+            const row = document.createElement('div');
+            row.className = 'player-row';
+            
+            let badges = '';
+            if (p.isFirst) badges += `<div class="badge badge-first">First</div>`;
+            if (p.hasHurtFeelings) badges += `<div class="badge badge-hurt">Hurt Feelings (Extra Card)</div>`;
+
+            row.innerHTML = `
+                <div class="player-header">
+                    <div>
+                        <div class="player-name">${p.name}</div>
+                        <div class="badges">${badges}</div>
+                    </div>
+                    <div class="player-wins">${'★'.repeat(p.wins)}${'☆'.repeat(3 - p.wins)}</div>
+                </div>
+                <div class="score-control">
+                    <button class="score-btn" onclick="adjustScore(${i}, -1)">-</button>
+                    <div class="score-display" id="score-disp-${i}">${p.score}</div>
+                    <button class="score-btn" onclick="adjustScore(${i}, 1)">+</button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function adjustScore(index, delta) {
+        if (navigator.vibrate) navigator.vibrate(10);
+        players[index].score += delta;
+        document.getElementById(`score-disp-${index}`).innerText = players[index].score;
+    }
+
+    function calculateRound() {
+        const maxScore = Math.max(...players.map(p => p.score));
+        const potentialWinners = players.filter(p => p.score === maxScore);
+
+        if (potentialWinners.length > 1) {
+            showModal("Tiebreaker", "Multiple players tied. Who took their turn earliest this round?", true, potentialWinners);
+        } else {
+            processRoundEnd(potentialWinners[0].id);
+        }
+    }
+
+    function processRoundEnd(winnerId) {
+        players[winnerId].wins += 1;
+        
+        if (players[winnerId].wins >= 3) {
+            showModal("Match Over", `<strong style="color:var(--primary); font-size:18px;">${players[winnerId].name}</strong> won 3 rounds.`, false);
+            document.getElementById('modal-btn').onclick = resetMatch;
+            return;
+        }
+
+        let hurtFeelingsText = "";
+        players.forEach(p => p.hasHurtFeelings = false);
+        
+        if (players.length >= 3) {
+            const minScore = Math.min(...players.map(p => p.score));
+            const lowestPlayers = players.filter(p => p.score === minScore);
+            lowestPlayers.forEach(p => p.hasHurtFeelings = true);
+            hurtFeelingsText = `<br><br><strong style="color:var(--primary);">Hurt Feelings (Play an Extra Card Next Round):</strong><br>${lowestPlayers.map(p=>p.name).join(', ')}`;
+        }
+
+        players.forEach(p => p.isFirst = false);
+        players[winnerId].isFirst = true;
+
+        const losers = players.filter(p => p.id !== winnerId).map(p => p.name).join(', ');
+        
+        showModal(
+            "Round Over", 
+            `<strong style="color:var(--primary);">Winner:</strong> ${players[winnerId].name}<br><br>
+            <strong style="color:var(--primary);">Draw a Card:</strong><br>${losers}${hurtFeelingsText}`, 
+            false
+        );
+
+        players.forEach(p => p.score = 0);
+        roundNum++;
+        renderGame();
+    }
+
+    function showModal(title, bodyHtml, isTiebreaker, tiePlayers = []) {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-body').innerHTML = bodyHtml;
+        const tbControls = document.getElementById('tiebreaker-controls');
+        const btn = document.getElementById('modal-btn');
+
+        if (isTiebreaker) {
+            tbControls.classList.remove('hidden');
+            tbControls.innerHTML = '';
+            tiePlayers.forEach(p => {
+                const b = document.createElement('button');
+                b.className = 'btn btn-secondary';
+                b.innerText = p.name;
+                b.onclick = () => {
+                    document.getElementById('modal-overlay').classList.add('hidden');
+                    processRoundEnd(p.id);
+                };
+                tbControls.appendChild(b);
+            });
+            btn.classList.add('hidden');
+        } else {
+            tbControls.classList.add('hidden');
+            btn.classList.remove('hidden');
+            btn.onclick = closeModal;
+        }
+
+        document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    function resetMatch() {
+        document.getElementById('main-header').innerText = 'New Match';
+        document.getElementById('setup-view').classList.remove('hidden');
+        document.getElementById('game-view').classList.add('hidden');
+        document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    function toggleRules() {
+        const overlay = document.getElementById('rules-overlay');
+        overlay.classList.toggle('active');
+    }
+</script>
+
+</body>
+</html>
